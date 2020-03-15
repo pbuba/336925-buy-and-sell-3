@@ -58,24 +58,30 @@ const generateOffers = (count, titles, categories, sentences) => (
 
 module.exports = {
   name: `--generate`,
-  async run(args) {
-    const sentences = await readContent(FILE_SENTENCES_PATH);
-    const titles = await readContent(FILE_TITLES_PATH);
-    const categories = await readContent(FILE_CATEGORIES_PATH);
-
+  run(args) {
     const [count] = args;
 
     let countOffer = Number.parseInt(count, 10) || DEFAULT_COUNT;
     if (countOffer > MAX_COUNT) {
       countOffer = MAX_COUNT;
     }
-    const content = JSON.stringify(generateOffers(countOffer, titles, categories, sentences));
 
-    try {
-      await fs.writeFile(FILE_NAME, content);
-      console.info(chalk.green(`Operation success. File created.`));
-    } catch (error) {
-      console.error(chalk.red(`Can't write data to file...`));
-    }
+    const sentencesPromise = readContent(FILE_SENTENCES_PATH);
+    const titlesPromise = readContent(FILE_TITLES_PATH);
+    const categoriesPromise = readContent(FILE_CATEGORIES_PATH);
+
+    const promiseMocks = Promise.all([sentencesPromise, titlesPromise, categoriesPromise]);
+
+    promiseMocks
+      .then(([sentences, titles, categories]) => JSON.stringify(generateOffers(countOffer, titles, categories, sentences))
+      )
+      .then(async (content) => {
+        try {
+          await fs.writeFile(FILE_NAME, content);
+          console.info(chalk.green(`Operation success. File created.`));
+        } catch (error) {
+          console.error(chalk.red(`Can't write data to file...`));
+        }
+      });
   }
 };
