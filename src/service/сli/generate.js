@@ -11,29 +11,9 @@ const {
 const DEFAULT_COUNT = 1;
 const MAX_COUNT = 1000;
 const FILE_NAME = `mock.json`;
-
-const TITLES = [
-  `Продам книги Стивена Кинга`,
-  `Продам новую приставку Sony Playstation 5`,
-  `Продам отличную подборку фильмов на VHS`,
-  `Куплю антиквариат`,
-  `Куплю породистого кота`
-];
-
-const SENTENCES = [
-  `Товар в отличном состоянии.`,
-  `Пользовались бережно и только по большим праздникам.`,
-  `Продаю с болью в сердце...`,
-  `Бонусом отдам все аксессуары.`,
-  `Даю недельную гарантию.`,
-  `Если товар не понравится — верну всё до последней копейки.`,
-  `Это настоящая находка для коллекционера!`,
-  `Если найдёте дешевле — сброшу цену.`,
-  `Таких предложений больше нет!`,
-  `При покупке с меня бесплатная доставка в черте города.`
-];
-
-const CATEGORIES = [`Книги`, `Разное`, `Посуда`, `Игры`, `Животные`, `Журналы`];
+const FILE_SENTENCES_PATH = `./data/sentences.txt`;
+const FILE_TITLES_PATH = `./data/titles.txt`;
+const FILE_CATEGORIES_PATH = `./data/categories.txt`;
 
 const OfferType = {
   offer: `offer`,
@@ -54,13 +34,23 @@ const getPictureFileName = (number) => {
   return number > 9 ? `item${number}.jpg` : `item0${number}.jpg`;
 };
 
+const readContent = async (filePath) => {
+  try {
+    const content = await fs.readFile(filePath, `utf-8`);
+    return content.split(`\n`);
+  } catch (err) {
+    console.error(chalk.red(err));
+    return [];
+  }
+};
 
-const generateOffers = (count) => (
+
+const generateOffers = (count, titles, categories, sentences) => (
   Array(count).fill({}).map(() => ({
-    category: [CATEGORIES[getRandomInt(0, CATEGORIES.length - 1)]],
-    description: shuffle(SENTENCES).slice(1, 5).join(` `),
+    category: [categories[getRandomInt(0, categories.length - 1)]],
+    description: shuffle(sentences).slice(1, 5).join(` `),
     picture: getPictureFileName(getRandomInt(PictureRestrict.min, PictureRestrict.max)),
-    title: TITLES[getRandomInt(0, TITLES.length - 1)],
+    title: titles[getRandomInt(0, titles.length - 1)],
     type: Object.keys(OfferType)[Math.floor(Math.random() * Object.keys(OfferType).length)],
     sum: getRandomInt(SumRestrict.min, SumRestrict.max),
   }))
@@ -68,19 +58,30 @@ const generateOffers = (count) => (
 
 module.exports = {
   name: `--generate`,
-  async run(args) {
+  run(args) {
     const [count] = args;
+
     let countOffer = Number.parseInt(count, 10) || DEFAULT_COUNT;
     if (countOffer > MAX_COUNT) {
       countOffer = MAX_COUNT;
     }
-    const content = JSON.stringify(generateOffers(countOffer));
 
-    try {
-      await fs.writeFile(FILE_NAME, content);
-      console.info(chalk.green(`Operation success. File created.`));
-    } catch (error) {
-      console.error(chalk.red(`Can't write data to file...`));
-    }
+    const sentencesPromise = readContent(FILE_SENTENCES_PATH);
+    const titlesPromise = readContent(FILE_TITLES_PATH);
+    const categoriesPromise = readContent(FILE_CATEGORIES_PATH);
+
+    const promiseMocks = Promise.all([sentencesPromise, titlesPromise, categoriesPromise]);
+
+    promiseMocks
+      .then(([sentences, titles, categories]) => JSON.stringify(generateOffers(countOffer, titles, categories, sentences))
+      )
+      .then(async (content) => {
+        try {
+          await fs.writeFile(FILE_NAME, content);
+          console.info(chalk.green(`Operation success. File created.`));
+        } catch (error) {
+          console.error(chalk.red(`Can't write data to file...`));
+        }
+      });
   }
 };
