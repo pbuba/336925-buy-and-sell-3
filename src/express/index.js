@@ -15,10 +15,7 @@ const PUBLIC_DIR = `public`;
 
 const app = express();
 
-console.log(path.resolve(__dirname, `templates`));
-
 app.set(`views`, path.resolve(__dirname, `templates`));
-// app.set(`views`, `./templates`);
 app.set(`view engine`, `pug`);
 
 app.use(express.static(path.resolve(__dirname, PUBLIC_DIR)));
