@@ -2,6 +2,7 @@
 
 const fs = require(`fs`).promises;
 const chalk = require(`chalk`);
+const {nanoid} = require(`nanoid`);
 
 const {
   getRandomInt,
@@ -14,6 +15,7 @@ const FILE_NAME = `mock.json`;
 const FILE_SENTENCES_PATH = `./data/sentences.txt`;
 const FILE_TITLES_PATH = `./data/titles.txt`;
 const FILE_CATEGORIES_PATH = `./data/categories.txt`;
+const COMMENTS_PATH = `./data/comments.txt`;
 
 const OfferType = {
   offer: `offer`,
@@ -45,14 +47,19 @@ const readContent = async (filePath) => {
 };
 
 
-const generateOffers = (count, titles, categories, sentences) => (
+const generateOffers = (count, titles, categories, sentences, comments) => (
   Array(count).fill({}).map(() => ({
+    id: nanoid(6),
     category: [categories[getRandomInt(0, categories.length - 1)]],
     description: shuffle(sentences).slice(1, 5).join(` `),
     picture: getPictureFileName(getRandomInt(PictureRestrict.min, PictureRestrict.max)),
     title: titles[getRandomInt(0, titles.length - 1)],
     type: Object.keys(OfferType)[Math.floor(Math.random() * Object.keys(OfferType).length)],
     sum: getRandomInt(SumRestrict.min, SumRestrict.max),
+    comments: Array(getRandomInt(1, 30)).fill({}).map(() => ({
+      id: nanoid(6),
+      text: shuffle(comments).slice(0, getRandomInt(1, comments.length - 1)).join(` `),
+    }))
   }))
 );
 
@@ -69,11 +76,12 @@ module.exports = {
     const sentencesPromise = readContent(FILE_SENTENCES_PATH);
     const titlesPromise = readContent(FILE_TITLES_PATH);
     const categoriesPromise = readContent(FILE_CATEGORIES_PATH);
+    const commentsPromise = readContent(COMMENTS_PATH);
 
-    const promiseMocks = Promise.all([sentencesPromise, titlesPromise, categoriesPromise]);
+    const promiseMocks = Promise.all([sentencesPromise, titlesPromise, categoriesPromise, commentsPromise]);
 
     promiseMocks
-      .then(([sentences, titles, categories]) => JSON.stringify(generateOffers(countOffer, titles, categories, sentences))
+      .then(([sentences, titles, categories, comments]) => JSON.stringify(generateOffers(countOffer, titles, categories, sentences, comments))
       )
       .then(async (content) => {
         try {
