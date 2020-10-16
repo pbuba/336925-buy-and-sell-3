@@ -4,6 +4,8 @@ const fs = require(`fs`).promises;
 const chalk = require(`chalk`);
 const {nanoid} = require(`nanoid`);
 
+const {MAX_ID_LENGTH} = require(`../../constants`);
+
 const {
   getRandomInt,
   shuffle,
@@ -49,7 +51,7 @@ const readContent = async (filePath) => {
 
 const generateOffers = (count, titles, categories, sentences, comments) => (
   Array(count).fill({}).map(() => ({
-    id: nanoid(6),
+    id: nanoid(MAX_ID_LENGTH),
     category: [categories[getRandomInt(0, categories.length - 1)]],
     description: shuffle(sentences).slice(1, 5).join(` `),
     picture: getPictureFileName(getRandomInt(PictureRestrict.min, PictureRestrict.max)),
@@ -57,7 +59,7 @@ const generateOffers = (count, titles, categories, sentences, comments) => (
     type: Object.keys(OfferType)[Math.floor(Math.random() * Object.keys(OfferType).length)],
     sum: getRandomInt(SumRestrict.min, SumRestrict.max),
     comments: Array(getRandomInt(1, 30)).fill({}).map(() => ({
-      id: nanoid(6),
+      id: nanoid(MAX_ID_LENGTH),
       text: shuffle(comments).slice(0, getRandomInt(1, comments.length - 1)).join(` `),
     }))
   }))
