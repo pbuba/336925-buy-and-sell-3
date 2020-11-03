@@ -7,9 +7,9 @@ const offerExist = require(`../middlewares/offer-exist`);
 const offerValidator = require(`../middlewares/offer-validator`);
 const commentValidator = require(`../middlewares/comment-validator`);
 
-const route = new Router();
-
 module.exports = (app, offerService, commentService) => {
+  const route = new Router();
+
   app.use(`/offers`, route);
 
   route.get(`/`, (req, res) => {
@@ -55,7 +55,6 @@ module.exports = (app, offerService, commentService) => {
   route.delete(`/:offerId`, (req, res) => {
     const {offerId} = req.params;
     const offer = offerService.drop(offerId);
-
     if (!offer) {
       return res.status(HttpCode.NOT_FOUND).send(`Not found`);
     }

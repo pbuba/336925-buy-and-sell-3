@@ -22,7 +22,7 @@ class OffersService {
       return null;
     }
 
-    this._offers.filter((item) => item.id !== id);
+    this._offers = this._offers.filter((item) => item.id !== id);
     return offer;
   }
 
